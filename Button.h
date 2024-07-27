@@ -1,7 +1,7 @@
 
   // this constant won't change:
 const int buttonPin = 2;  // the pin that the pushbutton is attached to
-const int ledPin = 13;    // the pin that the LED is attached to
+
 
 // Variables will change:
 int buttonPushCounter = 0;  // counter for the number of button presses

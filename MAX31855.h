@@ -26,6 +26,8 @@
 #define MAXCS   4
 #define MAXCLK  5
 
+
+
 // initialize the Thermocouple
 Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
 
@@ -38,6 +40,10 @@ Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
 // on SPI1 using specified CS pin.
 //#define MAXCS   10
 //Adafruit_MAX31855 thermocouple(MAXCS, SPI1);
+
+ // the pin that the LED is attached to
+const int ledPin = 12;   
+
 int get_temp()
 {// basic readout test, just print the current temp
    Serial.print("Internal Temp = ");
@@ -58,19 +64,27 @@ int get_temp()
    }
 
 }
-static bool check_temp()//If temperature has not risen in 5 sec 
+static bool lamp_state()//If temperature has not changed in 10 sec 
 {
   int a=get_temp();
-  delay(5000);
+  delay(10000);
   int b=get_temp();
+
   if(a==b)             
   {
+    digitalWrite(ledPin, LOW);
     return true;
   }
   else
   {
+    digitalWrite(ledPin, HIGH);
     return false;
+    
   }
+}
+static bool lamp_state()
+{
+
 }
 
 
