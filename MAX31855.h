@@ -1,19 +1,3 @@
-/***************************************************
-  This is an example for the Adafruit Thermocouple Sensor w/MAX31855K
-
-  Designed specifically to work with the Adafruit Thermocouple Sensor
-  ----> https://www.adafruit.com/products/269
-
-  These displays use SPI to communicate, 3 pins are required to
-  interface
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
-
 #include <SPI.h>
 #include "Adafruit_MAX31855.h"
 
@@ -22,9 +6,9 @@
 
 // Example creating a thermocouple instance with software SPI on any three
 // digital IO pins.
-#define MAXDO   3
-#define MAXCS   4
-#define MAXCLK  5
+#define MAXDO 5
+#define MAXCS 4
+#define MAXCLK 3
 
 
 
@@ -41,51 +25,74 @@ Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
 //#define MAXCS   10
 //Adafruit_MAX31855 thermocouple(MAXCS, SPI1);
 
- // the pin that the LED is attached to
-const int ledPin = 12;   
 
-int get_temp()
-{// basic readout test, just print the current temp
-   Serial.print("Internal Temp = ");
-   Serial.println(thermocouple.readInternal());
+const int ledPin = 2;  // the pin that the LED is attached to
+double c=0;
+double get_temp();
 
-   double c = thermocouple.readCelsius();
-   int c_temp=int(c);
-   if (isnan(c)) {
+
+
+static bool temp_state() //Returns false if the Thermocouple is wired incorrectly- 
+{
+  
+   if (isnan(thermocouple.readCelsius())) {
      Serial.println("Thermocouple fault(s) detected!");
      uint8_t e = thermocouple.readError();
      if (e & MAX31855_FAULT_OPEN) Serial.println("FAULT: Thermocouple is open - no connections.");
      if (e & MAX31855_FAULT_SHORT_GND) Serial.println("FAULT: Thermocouple is short-circuited to GND.");
      if (e & MAX31855_FAULT_SHORT_VCC) Serial.println("FAULT: Thermocouple is short-circuited to VCC.");
-   } else {
-     Serial.print("C = ");
-     Serial.println(c);
-     return c_temp;
-   }
+     return (false);
+  
+   }else{
+       
+     return (true);
+        
+    }
 
 }
-static bool lamp_state()//If temperature has not changed in 10 sec 
-{
-  int a=get_temp();
-  delay(10000);
-  int b=get_temp();
-
-  if(a==b)             
+void print_temp()//Prints the internal temp of the module and the temp of the thermocouple 
+{  
+  if(temp_state()) //if it's wired correctly
   {
-    digitalWrite(ledPin, LOW);
-    return true;
+     // basic readout test, just print the current temp
+    Serial.print("Internal Temp = ");
+    Serial.println(thermocouple.readInternal());  
+   
+    Serial.print("C = ");
+    Serial.println(get_temp());
+
+  }
+}
+double get_temp() //Reads the temp if the thermocouple is wired correctly
+{
+  if(temp_state())
+  {
+     c = thermocouple.readCelsius();  
+     return c;  
+
+  } 
+ 
+}
+bool lamp_state(double a, double b) //Checks if temp has changed
+{
+
+  if((b-a)>1||(a-b)>1)             //If it differs more than 2 degrees between the readings the temp is still rising?
+  {
+    digitalWrite(ledPin, HIGH); //Turns LED on if the temp is still rising
+    return (true);
+  
   }
   else
   {
-    digitalWrite(ledPin, HIGH);
-    return false;
-    
+    digitalWrite(ledPin, LOW); //If temp has stabilized the LED is i turned of.
+    return (false);
+     
   }
-}
-static bool lamp_state()
-{
+     
+  
 
 }
+
 
 
 
