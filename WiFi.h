@@ -15,15 +15,10 @@ void printWifiStatus();
 void read_request();
 void connectToWiFi();
 
-String servStr= server.toString(); //To 
 
 // Initialize the WiFi client library
 WiFiClient client;
 
-
-unsigned long lastConnectionTime = 0;            // last time you connected to the server, in milliseconds
-const unsigned long postingInterval = 10L * 1000L; // delay between updates, in milliseconds
-/* just wrap the received data up to 80 columns in the serial print*/
 /* -------------------------------------------------------------------------- */
 void read_request() {
 /* -------------------------------------------------------------------------- */  
@@ -44,6 +39,27 @@ void read_request() {
     }
     
   } 
+
+}
+void printWifiStatus() {
+/* -------------------------------------------------------------------------- */ 
+
+
+  // print the SSID of the network you're attached to:
+
+  Serial.print("SSID: ");   
+  Serial.println(WiFi.SSID());
+
+  //print your board's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+
+  // print the received signal strength:
+  long rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI):");
+  Serial.print(rssi);
+  Serial.println(" dBm");
 
 }
 void connectToWiFi()
@@ -68,7 +84,7 @@ void connectToWiFi()
     status = WiFi.begin(ssid, pass);
     
     // wait 10 seconds for connection:
-    delay(20000);
+    delay(10000);
 
   }
   // you're connected now, so print out the status:
@@ -78,26 +94,6 @@ void connectToWiFi()
 }
 
 /* -------------------------------------------------------------------------- */
-void printWifiStatus() {
-/* -------------------------------------------------------------------------- */ 
 
-
-  // print the SSID of the network you're attached to:
-
-  Serial.print("SSID: ");   
-  Serial.println(WiFi.SSID());
-
-  //print your board's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
-
-}
 
 
