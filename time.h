@@ -45,11 +45,6 @@ String get_timer()
   //Prints for debugging.
   Serial.println("timer stopped at:");
   Serial.println(gt);
-  Serial.println(timerStopped);
-  Serial.println("timerTime");
-  Serial.println(timerTime);
-  Serial.println("timerSec");
-  Serial.println(timerSec);
 
   return gt;
   
