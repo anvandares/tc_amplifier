@@ -86,19 +86,22 @@ void loop() {
       
       if(delayRunning){ //To switch between the two readings
         firstTemp=get_temp(); 
-       
-        Serial.println("firstTemp: ");
+        Serial.println();
+        Serial.print("First temperature reading: ");
         Serial.print(firstTemp); 
-        Serial.println("at: ");
-        Serial.print(get_time()); 
+        Serial.print(" degrees celsius,");
+        Serial.print(" at: ");
+        Serial.println(get_time()); 
         delayRunning=false;
        
       }
       else{      
-        secondTemp=get_temp();           
-        Serial.println("secondTemp: ");
-        Serial.println(secondTemp); 
-        Serial.println("at: ");
+        secondTemp=get_temp(); 
+        Serial.println();          
+        Serial.print("Second temperature reading: ");
+        Serial.print(secondTemp); 
+        Serial.print(" degrees celsius,");
+        Serial.print(" at: ");
         Serial.print(get_time()); 
         delayRunning=true;
       }
@@ -108,7 +111,7 @@ void loop() {
     } 
     if(!boolSetTimer&&secondTemp>0){ //If the timer is not set and there has been a second reading of temp. 
 
-      if(lamp_state(firstTemp, secondTemp)){ //If the temp is still rising.           
+      if(lamp_state(firstTemp, secondTemp)){ //If the temp is still rising
         boolSetTimer=true;    //So that timer is set only once
         Serial.println("SET"); 
         set_timer(); //Notes the time when timer was set.
@@ -126,6 +129,7 @@ void loop() {
   
   if(_delay(lastConnectionTime,10000UL)){  // if ten seconds have passed since your last connection,
       httpRequest();                                // then connect again and send data:
+      print_temp(); //basic readout of internal temp of amplifier and thermocouple
       lastConnectionTime = millis();   // notes the time that the connection was made:
         
 
@@ -134,15 +138,12 @@ void loop() {
 
 String client_print()
 {
+  char reportTemp[1020];
   int temp=int(get_temp());
   char timeStr[25];
   String time=get_time();
   time.toCharArray(timeStr, 25);
-  
-  char reportTemp[1020];
-
-
-  sprintf(reportTemp, "GET /report/mode/%d/temp/%d/time/%s HTTP/1.1\n", buttonPushCounter, temp, timeStr); //Copies state to string query.
+  sprintf(reportTemp, "GET /report/mode/%d/temp/%d/time/%s HTTP/1.1\n", buttonPushCounter, temp, timeStr); //Copies state to string reportTemp.
   Serial.println(reportTemp);
 
   return reportTemp;
