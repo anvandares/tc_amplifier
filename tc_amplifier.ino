@@ -5,8 +5,6 @@
 #include "led_matrix.h"
 #include "WiFi.h"
 
-
-
 #include <Wire.h>
 unsigned long timeStamp = millis(); //Notes the time when program started.
 double firstTemp=0; //For checking if the temp has risen. 
