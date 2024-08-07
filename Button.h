@@ -1,12 +1,10 @@
 const int buttonPin = 12;  // the number of the pushbutton pin
- 
-// Variables will change:
-unsigned long buttonPushCounter = 0;  // counter for the number of button presses
+int buttonPushCounter = 0;  // counter for the number of button presses
 int lastButtonState = 0;    // previous state of the button
 int buttonState=0; // the current reading from the input pin
-bool boolState=false; 
-unsigned long get_mode();
-int oven_mode() //GÖRA TILL VOID ELLER INT
+bool boolState=false; //Returns true if the button is pushed once and then remains true. 
+
+void oven_mode() //GÖRA TILL VOID ELLER INT
 {
   buttonState = digitalRead(buttonPin);
 
@@ -41,7 +39,7 @@ int oven_mode() //GÖRA TILL VOID ELLER INT
  // return buttonPushCounter;
 }
 
-unsigned long get_mode()
+int get_mode()
 {
   return buttonPushCounter;
 }
