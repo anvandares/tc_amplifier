@@ -1,53 +1,45 @@
-/*
-  Repeating WiFi Web Client
 
- This sketch connects to a a web server and makes a request
- using a WiFi equipped Arduino board.
-
- created 23 April 2012
- modified 31 May 2012
- by Tom Igoe
- modified 13 Jan 2014
- by Federico Vanzati
-
- This code is in the public domain.
-
-  Find the full UNO R4 WiFi Network documentation here:
-  https://docs.arduino.cc/tutorials/uno-r4-wifi/wifi-examples#wi-fi-web-client-repeating
- */
 #include "MAX31855.h"
-#include "WiFi.h"
-#include <Wire.h>
 #include "Button.h"
-/*--------------------------------------FOR TIME------------------------------*/
+#include "time.h"
+#include "led_matrix.h"
+#include "WiFi.h"
 
-#include "RTC.h"// Include the RTC library
-#include <NTPClient.h> //Include the NTP library
-#include <WiFiUdp.h>
 
-WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
-NTPClient timeClient(Udp);
+
+#include <Wire.h>
+unsigned long timeStamp = millis(); //Notes the time when program started.
+double firstTemp=0; //For checking if the temp has risen. 
+double secondTemp=0; //
+unsigned long lastConnectionTime = 0;  // last time you connected to the server, in milliseconds
+String servStr= server.toString(); //To add IP-adress to sprintf and print to client 
+bool boolSetTimer=false;  //So that timer only is set once
+bool boolGetTimer=false; //So that timer only is stopped once
+bool delayRunning = false; //delay between temperature readings.
+int startFrame=10; //Prints "Set." to built in display
 
 void setup() {
 /* -------------------------------------------------------------------------- */  
 
-  //Initialize serial and wait for port to open:
 
+   // initialize the button pin as a input:
+  pinMode(buttonPin, INPUT);
+  // initialize the LED as an output:
+  pinMode(ledPin, OUTPUT);
+  // initialize serial communication:
+    //Initialize serial and wait for port to open:
   Serial.begin(9600);
 
  
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-    // initialize the button pin as a input:
-  pinMode(buttonPin, INPUT);
-  // initialize the LED as an output:
-  pinMode(ledPin, OUTPUT);
-  // initialize serial communication:
+ 
 
   connectToWiFi();
-  RTC.begin();
   Serial.println("\nStarting connection to server...");
+  
+  RTC.begin();
   timeClient.begin();
   timeClient.update();
   auto timeZoneOffsetHours = 2;
@@ -56,54 +48,110 @@ void setup() {
   Serial.println(unixTime);
   RTCTime timeToSet = RTCTime(unixTime);
   RTC.setTime(timeToSet);
+  Serial.print("NOW time = ");
+  Serial.println(timeToSet);
+  matrix.begin();
+  delayRunning = true; //MÅSTE DEN VA HÄR?
 
-  
 }
-
-
 /* -------------------------------------------------------------------------- */
 void loop() {
 /* -------------------------------------------------------------------------- */  
-  // if there's incoming data from the net connection.
-  // send it out the serial port.  This is for debugging
-  // purposes only:
-  oven_mode();
-  lamp_state();
-  read_request();
+
+  read_request(); 
+  do{    
+    oven_mode(); //reads buttonstate
+
+    if(boolState){ //If button is pushed, break loop to move on from "start mode". 
+      break;
+    }   
+    if(_delay(timeStamp, 1500UL)){
+
+      if(startFrame==10){
+        print_frame(startFrame);
+        startFrame++;
+      }
+      else if(startFrame==11){
+        print_frame(startFrame);
+        startFrame--;
+      }
+      timeStamp = millis();
+
+    }
+   
+  }while(!boolState);  //Checks if button has been pushed at all.
+
+    print_frame(buttonPushCounter);   //prints the oven mode to the built in led display.
+
+
+    if(_delay(timeStamp, 15000UL)){ //Reads the temp every fifteen seconds
       
-  // if ten seconds have passed since your last connection,
-  // then connect again and send data:
-  if (millis() - lastConnectionTime > postingInterval) {
-    httpRequest();
+      if(delayRunning){ //To switch between the two readings
+        firstTemp=get_temp(); 
+       
+        Serial.println("firstTemp: ");
+        Serial.print(firstTemp); 
+        Serial.println("at: ");
+        Serial.print(get_time()); 
+        delayRunning=false;
+       
+      }
+      else{      
+        secondTemp=get_temp();           
+        Serial.println("secondTemp: ");
+        Serial.println(secondTemp); 
+        Serial.println("at: ");
+        Serial.print(get_time()); 
+        delayRunning=true;
+      }
+      
+      timeStamp = millis(); //updates the time when the last reading was made
+           
+    } 
+    if(!boolSetTimer&&secondTemp>0){ //If the timer is not set and there has been a second reading of temp. 
+
+      if(lamp_state(firstTemp, secondTemp)){ //If the temp is still rising.           
+        boolSetTimer=true;    //So that timer is set only once
+        Serial.println("SET"); 
+        set_timer(); //Notes the time when timer was set.
+
+        }
+    }else if(boolSetTimer&&!boolGetTimer){ //if timer is set but not stopped.
+
+      if(!lamp_state(firstTemp, secondTemp)){//if the two temperature readings are the same +-2 c
+        Serial.println("GET"); 
+        get_timer(); //Notes the time when t
+        boolGetTimer=true; //stop timer     
+        }
+    }
+
   
+  if(_delay(lastConnectionTime,10000UL)){  // if ten seconds have passed since your last connection,
+      httpRequest();                                // then connect again and send data:
+      lastConnectionTime = millis();   // notes the time that the connection was made:
+        
+
   }
-
 }
-void print_temp_time()
+
+String client_print()
 {
-
-  int mode=get_mode();
-  int temp=get_temp();
-
+  int temp=int(get_temp());
+  char timeStr[25];
+  String time=get_time();
+  time.toCharArray(timeStr, 25);
+  
   char reportTemp[1020];
-  RTCTime currentTime;
-  RTC.getTime(currentTime); 
-
-  String currentTimeS=String(currentTime);
-  char currentTimeStr[25];
- 
- 
-  currentTimeS.toCharArray(currentTimeStr, 25);
-  Serial.println(currentTimeS);
-  Serial.println(currentTimeStr);
 
 
-  sprintf(reportTemp, "GET /report/mode/%d/temp/%d/time/%s HTTP/1.1\n", mode, temp, currentTimeStr); //Copies state to string query.
+  sprintf(reportTemp, "GET /report/mode/%d/temp/%d/time/%s HTTP/1.1\n", buttonPushCounter, temp, timeStr); //Copies state to string query.
   Serial.println(reportTemp);
-  client.println(reportTemp);
-    
- 
+
+  return reportTemp;
+
 }
+
+ 
 // this method makes a HTTP connection to the server:
 /* -------------------------------------------------------------------------- */
 void httpRequest() {
@@ -119,8 +167,7 @@ void httpRequest() {
     Serial.println("\nconnecting...");
     
     // send the HTTP GET request:
-  
-    print_temp_time();
+    client.println(client_print());
     client.println("GET / HTTP/1.1");
     
     sprintf(buffer, "Host: %s:/%d HTTP/1.1\n", servStr, port); 
@@ -128,15 +175,16 @@ void httpRequest() {
    
     client.println("User-Agent: ArduinoWiFi/1.1");
     client.println("Connection: close");
+    
+    
     client.println();
 
 
-    // note the time that the connection was made:
-    lastConnectionTime = millis();
+   
   } else {
     // if you couldn't make a connection:
     Serial.println("connection failed");
-    delay(5000);
+   
   }
 }
 
