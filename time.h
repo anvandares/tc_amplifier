@@ -8,7 +8,7 @@
 
 WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
 NTPClient timeClient(Udp);
-unsigned long timerStarted=0UL; //That the variable can be reached in get_timer()
+unsigned long timerStarted=0UL; //Placed it here so that the variable can be reached in get_timer()
 
 String get_time() //Return the time 
 {
@@ -33,12 +33,13 @@ void set_timer()
 }
 String get_timer()
 {
+  char gt[20]; 
   unsigned long timerStopped=millis(); //Note millis that have passed since program started to when timer was stopped
   unsigned long timerTime = (timerStopped - timerStarted)/1000; //Total time between timerStarted and timerStopped in seconds
   unsigned int timerSec = timerTime % 60; //Sec
   unsigned int timerMin = (timerTime/60)%60;  //Min
   unsigned int timerHour = (timerTime / (60 * 60)); //I won't bother getting days, one can hope that the temperature will stabilize whitin 24-hours. 
-  char gt[20]; 
+ 
 
   sprintf_P(gt,(PGM_P)F("%02d:%02d:%02d"), timerHour, timerMin, timerSec); 
   
