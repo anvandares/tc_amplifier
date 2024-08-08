@@ -71,7 +71,7 @@ const uint32_t mode_Arr[][3] = { //An array with "sel.", "mode" and "M(+)0-9" fo
 	}
   };
 
-  void print_frame(int a)
+  void print_frame(int a) //Prints selected frame to built in led 
   { 
     matrix.loadFrame(mode_Arr[a]);
 
