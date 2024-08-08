@@ -6,11 +6,9 @@
 
 // Example creating a thermocouple instance with software SPI on any three
 // digital IO pins.
-#define MAXDO 5
-#define MAXCS 4
-#define MAXCLK 3
-
-
+#define MAXDO 4
+#define MAXCS 5
+#define MAXCLK 6
 
 // initialize the Thermocouple
 Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
@@ -24,14 +22,8 @@ Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
 // on SPI1 using specified CS pin.
 //#define MAXCS   10
 //Adafruit_MAX31855 thermocouple(MAXCS, SPI1);
-
-
-const int ledPin = 2;  // the pin that the LED is attached to
 double c=0;
 double get_temp();
-
-
-
 static bool temp_state() //Returns false if the Thermocouple is wired incorrectly- 
 {
   
@@ -73,30 +65,6 @@ double get_temp() //Reads the temp if the thermocouple is wired correctly
   } 
  
 }
-bool lamp_state(double a, double b) //Checks if temp has changed
-{
-
-  if((b-a)>1||(a-b)>1)             //If it differs more than 2 degrees between the readings the temp is still rising?
-  {
-    digitalWrite(ledPin, HIGH); //Turns LED on if the temp is still rising
-    return (true);
-  
-  }
-  else
-  {
-    digitalWrite(ledPin, LOW); //If temp has stabilized the LED is i turned of.
-    return (false);
-     
-  }
-     
-  
-
-}
-
-
-
-
-
 
 
 
