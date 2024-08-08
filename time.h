@@ -29,7 +29,7 @@ String get_time() //Return the time
 void set_timer()
 {
   timerStarted=millis();//Note millis that have passed since program started to when timer was set.
-  Serial.println(timerStarted); //Prints the time set_timer() was called in millis(), just for debugging
+
 }
 String get_timer()
 {
