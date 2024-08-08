@@ -8,7 +8,7 @@
 #include <Wire.h>
 unsigned long timeStamp = millis(); //Notes the time when program started.
 double firstTemp=0; //For checking if the temp has risen. 
-double secondTemp=0; //
+double secondTemp=0; 
 unsigned long lastConnectionTime = 0;  // last time you connected to the server, in milliseconds
 String servStr= server.toString(); //To add IP-adress to sprintf and print to client 
 bool boolSetTimer=false;  //So that timer only is set once
@@ -24,8 +24,7 @@ void setup() {
   pinMode(buttonPin, INPUT);
   // initialize the LED as an output:
   pinMode(ledPin, OUTPUT);
-  // initialize serial communication:
-    //Initialize serial and wait for port to open:
+  //Initialize serial and wait for port to open:
   Serial.begin(9600);
 
  
@@ -42,12 +41,8 @@ void setup() {
   timeClient.update();
   auto timeZoneOffsetHours = 2;
   auto unixTime = timeClient.getEpochTime() + (timeZoneOffsetHours * 3600);
-  Serial.print("Unix time = ");
-  Serial.println(unixTime);
   RTCTime timeToSet = RTCTime(unixTime);
   RTC.setTime(timeToSet);
-  Serial.print("NOW time = ");
-  Serial.println(timeToSet);
   matrix.begin();
   delayRunning = true; //MÅSTE DEN VA HÄR?
 
@@ -57,6 +52,7 @@ void loop() {
 /* -------------------------------------------------------------------------- */  
 
   read_request(); 
+
   do{    
     oven_mode(); //reads buttonstate
 
@@ -65,12 +61,12 @@ void loop() {
     }   
     if(_delay(timeStamp, 1500UL)){
 
-      if(startFrame==10){
-        print_frame(startFrame);
+      if(startFrame==10){ 
+        print_frame(startFrame); //Set. 
         startFrame++;
       }
       else if(startFrame==11){
-        print_frame(startFrame);
+        print_frame(startFrame); //Mode
         startFrame--;
       }
       timeStamp = millis();
@@ -80,56 +76,55 @@ void loop() {
   }while(!boolState);  //Checks if button has been pushed at all.
 
     print_frame(buttonPushCounter);   //prints the oven mode to the built in led display.
-
-
     if(_delay(timeStamp, 15000UL)){ //Reads the temp every fifteen seconds
       
       if(delayRunning){ //To switch between the two readings
         firstTemp=get_temp(); 
-        Serial.println();
+        //uncomment for debugging
+      /*  Serial.println();
         Serial.print("First temperature reading: ");
         Serial.print(firstTemp); 
         Serial.print(" degrees celsius,");
         Serial.print(" at: ");
-        Serial.println(get_time()); 
+        Serial.println(get_time()); */
         delayRunning=false;
        
       }
       else{      
         secondTemp=get_temp(); 
-        Serial.println();          
+        //uncomment for debugging
+       /* Serial.println();          
         Serial.print("Second temperature reading: ");
         Serial.print(secondTemp); 
         Serial.print(" degrees celsius,");
         Serial.print(" at: ");
-        Serial.print(get_time()); 
+        Serial.print(get_time()); */
         delayRunning=true;
       }
       
       timeStamp = millis(); //updates the time when the last reading was made
            
     } 
-    if(!boolSetTimer&&secondTemp>0){ //If the timer is not set and there has been a second reading of temp. 
+    if(!boolSetTimer&&secondTemp>0){ //If there has been a second reading of temp and the timer is not set . 
 
       if(lamp_state(firstTemp, secondTemp)){ //If the temp is still rising
         boolSetTimer=true;    //So that timer is set only once
-        Serial.println("SET"); 
+       
         set_timer(); //Notes the time when timer was set.
 
         }
     }else if(boolSetTimer&&!boolGetTimer){ //if timer is set but not stopped.
 
       if(!lamp_state(firstTemp, secondTemp)){//if the two temperature readings are the same +-2 c
-        Serial.println("GET"); 
-        get_timer(); //Notes the time when t
+        get_timer(); //Notes the time when timer stopped.
         boolGetTimer=true; //stop timer     
         }
     }
 
   
   if(_delay(lastConnectionTime,10000UL)){  // if ten seconds have passed since your last connection,
-      httpRequest();                                // then connect again and send data:
-      print_temp(); //basic readout of internal temp of amplifier and thermocouple
+      httpRequest();                       // then connect again and send data:
+      print_temp();                     //basic readout of internal temp of amplifier and thermocouple
       lastConnectionTime = millis();   // notes the time that the connection was made:
         
 
