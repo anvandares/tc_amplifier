@@ -1,10 +1,13 @@
-const int buttonPin = 12;  // the number of the pushbutton pin
+const int buttonPin = 3;  // the number of the pushbutton pin
+const int ledPin = 2;  // the pin that the LED is attached to
+
 int buttonPushCounter = 0;  // counter for the number of button presses
 int lastButtonState = 0;    // previous state of the button
 int buttonState=0; // the current reading from the input pin
 bool boolState=false; //Returns true if the button is pushed once and then remains true. 
 
-void oven_mode() //GÖRA TILL VOID ELLER INT
+
+void oven_mode() //Reads the buttonstate
 {
   buttonState = digitalRead(buttonPin);
 
@@ -36,10 +39,22 @@ void oven_mode() //GÖRA TILL VOID ELLER INT
 
   // save the current state as the last state, for next time through the loop
   lastButtonState = buttonState;
- // return buttonPushCounter;
-}
 
-int get_mode()
+}
+bool lamp_state(double a, double b) //Checks if temp has changed
 {
-  return buttonPushCounter;
+
+  if((b-a)>1||(a-b)>1)             //If it differs more than 2 degrees between the readings the temp is still rising?
+  {
+    digitalWrite(ledPin, HIGH); //Turns LED on if the temp is still rising
+    return (true);
+  
+  }
+  else
+  {
+    digitalWrite(ledPin, LOW); //If temp has stabilized the LED is i turned of.
+    return (false);
+     
+  } 
+
 }
